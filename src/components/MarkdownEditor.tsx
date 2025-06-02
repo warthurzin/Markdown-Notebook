@@ -495,25 +495,24 @@ export default function MarkdownEditor() {
                 <h3 className="text-lg font-semibold text-sky-400 border-b border-gray-600 pb-1">
                   💻 Blocos de Código
                 </h3>
-                <div className="bg-gray-900 p-3 rounded text-sm">
+                <div className="bg-gray-900 p-3 rounded text-sm overflow-x-auto">
                   <div className="text-gray-300 mb-2">Digite:</div>
-                  <code className="text-emerald-400">
-                    ```javascript<br/>
-                    function exemplo() {`{`}<br/>
-                    &nbsp;&nbsp;console.log("Olá!");<br/>
-                    {`}`}<br/>
-                    ```
-                  </code>
+                  <pre className="bg-gray-800 p-3 rounded text-emerald-400 text-xs overflow-x-auto">
+                    <code>{`\`\`\`javascript
+function exemplo() {
+  console.log("Olá!");
+}
+\`\`\``}            </code>
+                  </pre>
+    
                   <div className="text-gray-300 mt-3 mb-1">Resultado:</div>
                   <div className="border-l-2 border-sky-500 pl-3">
-                    <pre className="bg-gray-800 p-2 rounded text-emerald-400 text-xs">
-                      <code>
-                        {`function exemplo() {
-                        console.log("Olá!");
-                        }`}
-                      </code>
+                    <pre className="bg-gray-800 p-3 rounded text-emerald-400 text-xs overflow-x-auto">
+                      <code>{`function exemplo() {
+  console.log("Olá!");
+}`}                   </code>
                     </pre>
-                  </div>
+                </div>
                 </div>
               </div>
 
