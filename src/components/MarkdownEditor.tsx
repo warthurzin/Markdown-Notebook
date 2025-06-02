@@ -151,21 +151,23 @@ export default function MarkdownEditor() {
     <div className="min-h-screen text-white bg-gradient-to-br from-gray-900 to-gray-800 p-4 flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-        <h1 className="text-2xl font-bold">Markdown Notebook</h1>
-        <div className="flex gap-2">
+        <h1 className="text-lg sm:text-2xl font-bold flex-shrink-0">Markdown Notebook</h1>
+        <div className="flex gap-2 items-center flex-shrink-0">
           {user ? (
             <>
-              <span className="text-sm opacity-75">Olá, {user.displayName?.split(" ")[0]}</span>
+              <span className="text-xs sm:text-sm opacity-75 hidden xs:inline">
+                Olá, {user.displayName?.split(" ")[0]}
+              </span>
               <button
                 onClick={handleLogout}
-                className="border border-red-400 px-3 py-1 rounded hover:bg-red-500/20 transition"
+                className="border border-red-400 px-2 sm:px-3 py-1 rounded hover:bg-red-500/20 transition text-xs sm:text-sm"
               >
                 Sair
               </button>
             </>
           ) : (
             <button
-              className="border border-sky-400 px-3 py-1 rounded hover:bg-sky-500/20 transition"
+              className="border border-sky-400 px-2 sm:px-3 py-1 rounded hover:bg-sky-500/20 transition text-xs sm:text-sm"
               onClick={handleLogin}
             >
               Entrar com Google
@@ -175,18 +177,18 @@ export default function MarkdownEditor() {
       </header>
 
       {/* Editor / Preview */}
-      <main className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <section className="flex flex-col gap-2">
+      <main className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 min-h-0">
+        <section className="flex flex-col gap-2 min-h-0">
           <div className="flex gap-2">
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Título da nota"
-              className="flex-1 bg-transparent border border-gray-700 rounded p-2 outline-none focus:ring-1 focus:ring-sky-500"
+              className="flex-1 bg-transparent border border-gray-700 rounded p-2 outline-none focus:ring-1 focus:ring-sky-500 text-sm sm:text-base"
             />
             <button
               onClick={handleNewNote}
-              className="border border-gray-500 px-3 py-1 rounded hover:bg-gray-500/20 transition"
+              className="border border-gray-500 px-2 sm:px-3 py-1 rounded hover:bg-gray-500/20 transition text-sm flex-shrink-0"
               title="Nova nota"
             >
               Nova
@@ -195,12 +197,12 @@ export default function MarkdownEditor() {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="flex-1 bg-transparent border border-gray-700 rounded p-2 font-mono resize-none outline-none focus:ring-1 focus:ring-sky-500"
+            className="flex-1 bg-transparent border border-gray-700 rounded p-2 font-mono resize-none outline-none focus:ring-1 focus:ring-sky-500 text-sm sm:text-base min-h-[250px] sm:min-h-0"
             placeholder="# Digite seu markdown aqui..."
           />
           <button
             onClick={handleSave}
-            className="disabled:opacity-50 border border-emerald-500 rounded p-2 hover:bg-emerald-500/20 transition"
+            className="disabled:opacity-50 border border-emerald-500 rounded p-2 hover:bg-emerald-500/20 transition text-sm sm:text-base"
             disabled={!user}
           >
             {selectedId ? "Atualizar nota" : "Salvar nota"}
@@ -208,28 +210,28 @@ export default function MarkdownEditor() {
         </section>
 
         {/* Preview - Markdown básico funcional */}
-        <section className="border border-gray-700 rounded p-4 overflow-y-auto">
-          <div className="prose prose-invert max-w-none">
+        <section className="border border-gray-700 rounded p-2 sm:p-4 overflow-y-auto min-h-0">
+          <div className="prose prose-invert max-w-none prose-sm sm:prose-base">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
               // CABEÇALHOS
-              h1: ({children}) => <h1 className="text-3xl font-bold text-white mb-4">{children}</h1>,
-              h2: ({children}) => <h2 className="text-2xl font-semibold text-white mb-3">{children}</h2>,
-              h3: ({children}) => <h3 className="text-xl font-medium text-white mb-2">{children}</h3>,
+              h1: ({children}) => <h1 className="text-xl sm:text-3xl font-bold text-white mb-2 sm:mb-4">{children}</h1>,
+              h2: ({children}) => <h2 className="text-lg sm:text-2xl font-semibold text-white mb-2 sm:mb-3">{children}</h2>,
+              h3: ({children}) => <h3 className="text-base sm:text-xl font-medium text-white mb-1 sm:mb-2">{children}</h3>,
               h4: ({children}) => <h4 className="text-lg font-medium text-white mb-2">{children}</h4>,
               h5: ({children}) => <h5 className="text-base font-medium text-white mb-1">{children}</h5>,
               h6: ({children}) => <h6 className="text-sm font-medium text-white mb-1">{children}</h6>,
     
               // TEXTO
-              p: ({children}) => <p className="text-gray-200 mb-3 leading-relaxed">{children}</p>,
+              p: ({children}) => <p className="text-gray-200 mb-2 sm:mb-3 leading-relaxed text-xs sm:text-base">{children}</p>,
               strong: ({children}) => <strong className="text-white font-bold">{children}</strong>,
               em: ({children}) => <em className="text-gray-300 italic">{children}</em>,
               del: ({children}) => <del className="text-gray-400 line-through">{children}</del>,
     
               // CÓDIGO
-              code: ({children}) => <code className="bg-gray-800 text-emerald-400 px-1 py-0.5 rounded text-sm">{children}</code>,
-              pre: ({children}) => <pre className="bg-gray-800 p-3 rounded text-emerald-400 overflow-x-auto mb-3">{children}</pre>,
+              code: ({children}) => <code className="bg-gray-800 text-emerald-400 px-1 py-0.5 rounded text-xs break-all">{children}</code>,
+              pre: ({children}) => <pre className="bg-gray-800 p-2 sm:p-3 rounded text-emerald-400 overflow-x-auto mb-2 sm:mb-3 text-xs">{children}</pre>,
     
               // CITAÇÕES E LINHA
               blockquote: ({children}) => <blockquote className="border-l-4 border-sky-500 pl-4 italic text-gray-300 mb-3">{children}</blockquote>,
@@ -268,12 +270,12 @@ export default function MarkdownEditor() {
                 <tr className="border-b border-gray-600">{children}</tr>
               ),
               th: ({children}) => (
-                <th className="border border-gray-600 px-3 py-2 text-white font-semibold text-left">
+                <th className="border border-gray-600 px-1 sm:px-3 py-1 sm:py-2 text-white font-semibold text-left text-xs sm:text-sm">
                   {children}
                 </th>
               ),
               td: ({children}) => (
-                <td className="border border-gray-600 px-3 py-2 text-gray-200">
+                <td className="border border-gray-600 px-1 sm:px-3 py-1 sm:py-2 text-gray-200 text-xs sm:text-sm">
                   {children}
                 </td>
               ),
@@ -302,7 +304,7 @@ export default function MarkdownEditor() {
 
       {/* Footer - Lista de notas */}
       <footer className="mt-6 border-t border-gray-700 pt-4">
-        <h2 className="text-xl mb-2 font-semibold">Suas notas</h2>
+        <h2 className="text-base sm:text-xl mb-2 font-semibold">Suas notas</h2>
         {loadingNotes ? (
           <p>Carregando...</p>
         ) : notes.length === 0 ? (
@@ -312,11 +314,15 @@ export default function MarkdownEditor() {
             {notes.map((n) => (
               <li
                 key={n.id}
-                className={`flex items-center justify-between hover:bg-gray-700/40 rounded px-2 py-1 cursor-pointer transition ${
+                className={`flex items-center justify-between hover:bg-gray-700/40 rounded px-2 py-1 cursor-pointer transition text-xs sm:text-base ${
                   selectedId === n.id ? 'bg-sky-500/20 border border-sky-500' : ''
                 }`}
               >
-                <span onClick={() => handleSelect(n)} className="flex-1">
+                <span 
+                  onClick={() => handleSelect(n)} 
+                  className="flex-1 truncate pr-2"
+                  title={n.title}
+                >
                   {n.title}
                 </span>
                 <button
