@@ -40,8 +40,8 @@ Antes de começar, certifique-se de ter instalado:
 
 ### 1. Clone o repositório
 ```bash
-git clone https://github.com/<seu-usuario>/markdown-notebook.git
-cd markdown-notebook
+git clone https://github.com/warthurzin/Markdown-Notebook.git
+cd Markdown-Notebook
 ```
 
 ### 2. Instale as dependências
