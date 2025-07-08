@@ -147,12 +147,38 @@ export default function MarkdownEditor() {
     clearEditor();
   };
 
+  // Função para exportar/baixar arquivo .md
+  const handleExport = () => {
+    if (!title.trim() && !content.trim()) {
+      alert("Não há conteúdo para exportar.");
+      return;
+    }
+  
+    const fileName = title.trim() || "nota-sem-titulo";
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${fileName}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen text-white bg-gradient-to-br from-gray-900 to-gray-800 p-4 flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <h1 className="text-lg sm:text-2xl font-bold flex-shrink-0">Markdown Notebook</h1>
         <div className="flex gap-2 items-center flex-shrink-0">
+          <button
+            onClick={handleExport}
+            className="border border-green-400 px-2 sm:px-3 py-1 rounded hover:bg-green-500/20 transition text-xs sm:text-sm"
+            title="Exportar como arquivo .md"
+          >
+            Exportar
+          </button>
           <button
             onClick={() => setShowHelp(true)}
             className="border border-blue-400 px-2 sm:px-3 py-1 rounded hover:bg-blue-500/20 transition text-xs sm:text-sm"
