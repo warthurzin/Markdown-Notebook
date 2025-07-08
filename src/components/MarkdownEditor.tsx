@@ -310,14 +310,14 @@ export default function MarkdownEditor() {
       </main>
 
       {/* Footer - Lista de notas */}
-      <footer className="mt-6 border-t border-gray-700 pt-4">
+      <footer className="mt-6 border-t border-gray-700 pt-4 h-48 flex flex-col">
         <h2 className="text-base sm:text-xl mb-2 font-semibold">Suas notas</h2>
         {loadingNotes ? (
           <p>Carregando...</p>
         ) : notes.length === 0 ? (
           <p className="opacity-70">Nenhuma nota salva.</p>
         ) : (
-          <ul className="space-y-1">
+          <ul className="space-y-1 flex-1 overflow-y-auto">
             {notes.map((n) => (
               <li
                 key={n.id}
