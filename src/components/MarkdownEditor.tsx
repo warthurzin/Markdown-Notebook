@@ -32,15 +32,32 @@ interface Note {
   createdAt: Timestamp;
 }
 
+interface Folder {
+  id: string;
+  uid: string;
+  name: string;
+  createdAt: Timestamp;
+}
+
+interface NoteWithFolder extends Note {
+  folderId?: string;
+}
+
 export default function MarkdownEditor() {
   const [user, setUser] = useState<User | null>(null);
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("# Digite seu markdown aqui...\n\n> Pré-visualização à direita.");
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<NoteWithFolder[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loadingNotes, setLoadingNotes] = useState<boolean>(false);
   const notesRef = collection(db, "notes");
+  const foldersRef = collection(db, "folders");
   const [showHelp, setShowHelp] = useState<boolean>(false);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [currentFolder, setCurrentFolder] = useState<string | null>(null);
+  const [showCreateFolder, setShowCreateFolder] = useState<boolean>(false);
+  const [newFolderName, setNewFolderName] = useState<string>("");
+  const [draggedNote, setDraggedNote] = useState<string | null>(null);
 
   // Listener de autenticação
   useEffect(() => {
@@ -60,11 +77,13 @@ export default function MarkdownEditor() {
   // Listener em tempo real para notas do usuário
   const fetchNotes = (uid: string) => {
     setLoadingNotes(true);
-    const q = query(notesRef, orderBy("createdAt", "desc"));
-    return onSnapshot(q, (snap) => {
-      const arr: Note[] = [];
+
+    // Buscar Notas
+    const notesQuery = query(notesRef, orderBy("createdAt", "desc"));
+    const notesUnsub = onSnapshot(notesQuery, (snap) => {
+      const arr: NoteWithFolder[] = [];
       snap.forEach((docSnap) => {
-        const data = docSnap.data() as Note;
+        const data = docSnap.data() as NoteWithFolder;
         if (data.uid === uid) {
           arr.push({ ...data, id: docSnap.id });
         }
@@ -72,6 +91,24 @@ export default function MarkdownEditor() {
       setNotes(arr);
       setLoadingNotes(false);
     });
+
+    // Buscar Pastas
+    const foldersQuery = query(foldersRef, orderBy("createdAt", "desc"));
+    const foldersUnsub = onSnapshot(foldersQuery, (snap) => {
+      const arr: Folder[] = [];
+      snap.forEach((docSnap) => {
+        const data = docSnap.data() as Folder;
+        if (data.uid === uid) {
+          arr.push({ ...data, id: docSnap.id });
+        }
+      });
+      setFolders(arr);
+    });
+
+    return () => {
+      notesUnsub();
+      foldersUnsub();
+    };
   };
 
   // Login Google
@@ -98,8 +135,8 @@ export default function MarkdownEditor() {
           title,
           content,
           createdAt: Timestamp.now(),
+          folderId: currentFolder,
         });
-        // Não remove a seleção - mantém a nota selecionada
       } else {
         // Criando nova nota
         const docRef = await addDoc(notesRef, {
@@ -107,6 +144,7 @@ export default function MarkdownEditor() {
           title,
           content,
           createdAt: Timestamp.now(),
+          folderId: currentFolder,
         });
         // Para nova nota, define como selecionada após criação
         setSelectedId(docRef.id);
@@ -129,7 +167,7 @@ export default function MarkdownEditor() {
   };
 
   // Selecionar nota para edição
-  const handleSelect = (note: Note) => {
+  const handleSelect = (note: NoteWithFolder) => {
     setSelectedId(note.id!);
     setTitle(note.title);
     setContent(note.content);
@@ -145,6 +183,67 @@ export default function MarkdownEditor() {
   // Nova função para criar nova nota
   const handleNewNote = () => {
     clearEditor();
+  };
+
+  // Criar nova pasta
+  const handleCreateFolder = async () => {
+    if (!user) return alert("É necessário estar logado para criar pastas.");
+    if (!newFolderName.trim()) return alert("Digite um nome para a pasta.");
+  
+    try {
+      await addDoc(foldersRef, {
+        uid: user.uid,
+        name: newFolderName.trim(),
+        createdAt: Timestamp.now(),
+      });
+      setNewFolderName("");
+      setShowCreateFolder(false);
+    } catch (err) {
+      console.error("Erro ao criar pasta:", err);
+    }
+  };
+
+  // Excluir pasta
+  const handleDeleteFolder = async (folderId: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta pasta? As notas dentro dela não serão excluídas.")) return;
+  
+    try {
+      await deleteDoc(doc(db, "folders", folderId));
+      if (currentFolder === folderId) {
+        setCurrentFolder(null);
+      }
+    } catch (err) {
+    console.error("Erro ao excluir pasta:", err);
+    }
+  };
+
+  // Mover nota para pasta
+  const handleMoveNoteToFolder = async (noteId: string, folderId: string | null) => {
+    try {
+      await setDoc(doc(db, "notes", noteId), {
+        ...(notes.find(n => n.id === noteId) as NoteWithFolder),
+        folderId: folderId,
+      });
+    } catch (err) {
+      console.error("Erro ao mover nota:", err);
+    }
+  };
+
+  // Funções de drag and drop
+  const handleDragStart = (noteId: string) => {
+    setDraggedNote(noteId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, folderId: string | null) => {
+    e.preventDefault();
+    if (draggedNote) {
+      handleMoveNoteToFolder(draggedNote, folderId);
+      setDraggedNote(null);
+    }
   };
 
   // Função para importar arquivo .md
@@ -368,40 +467,154 @@ export default function MarkdownEditor() {
 
       {/* Footer - Lista de notas */}
       <footer className="mt-6 border-t border-gray-700 pt-4 h-48 flex flex-col">
-        <h2 className="text-base sm:text-xl mb-2 font-semibold">Suas notas</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-base sm:text-xl font-semibold">
+            {currentFolder ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentFolder(null)}
+                  className="text-sky-400 hover:text-sky-300 text-sm"
+                >
+                  ← Voltar
+                </button>
+                <span>{folders.find(f => f.id === currentFolder)?.name}</span>
+              </div>
+            ) : (
+              "Suas notas"
+            )}
+          </h2>
+    
+          {!currentFolder && (
+            <button
+              onClick={() => setShowCreateFolder(true)}
+              className="border border-yellow-400 px-2 py-1 rounded hover:bg-yellow-500/20 transition text-xs"
+              title="Criar pasta"
+            >
+              + Pasta
+            </button>
+          )}
+        </div>
+
+        {/* Modal criar pasta */}
+        {showCreateFolder && (
+          <div className="mb-3 p-2 bg-gray-800 rounded border border-gray-600">
+            <div className="flex gap-2">
+              <input
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Nome da pasta"
+                className="flex-1 bg-transparent border border-gray-700 rounded px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-sky-500"
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
+              />
+              <button
+                onClick={handleCreateFolder}
+                className="border border-green-400 px-2 py-1 rounded hover:bg-green-500/20 transition text-xs"
+              >
+                Criar
+              </button>
+              <button
+                onClick={() => {
+                  setShowCreateFolder(false);
+                setNewFolderName("");
+              }}
+              className="border border-gray-500 px-2 py-1 rounded hover:bg-gray-500/20 transition text-xs"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
         {loadingNotes ? (
           <p>Carregando...</p>
-        ) : notes.length === 0 ? (
-          <p className="opacity-70">Nenhuma nota salva.</p>
         ) : (
-          <ul className="space-y-1 flex-1 overflow-y-auto">
-            {notes.map((n) => (
-              <li
-                key={n.id}
-                className={`flex items-center justify-between hover:bg-gray-700/40 rounded px-2 py-1 cursor-pointer transition text-xs sm:text-base ${
-                  selectedId === n.id ? 'bg-sky-500/20 border border-sky-500' : ''
-                }`}
+          <div className="flex-1 overflow-y-auto">
+            {!currentFolder && (
+              // Exibir pastas na raiz
+              <div className="mb-3">
+                {folders.map((folder) => (
+                  <div
+                    key={folder.id}
+                    className="flex items-center justify-between hover:bg-gray-700/40 rounded px-2 py-1 cursor-pointer transition mb-1"
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, folder.id)}
+                  >
+                    <div
+                      onClick={() => setCurrentFolder(folder.id)}
+                      className="flex items-center gap-2 flex-1"
+                    >
+                      <span className="text-yellow-400">📁</span>
+                      <span className="text-sm sm:text-base">{folder.name}</span>
+                      <span className="text-xs text-gray-400">
+                        ({notes.filter(n => n.folderId === folder.id).length})
+                      </span>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteFolder(folder.id);
+                      }}
+                      className="text-red-400 hover:text-red-200 ml-2"
+                      title="Excluir pasta"
+                    >
+                      ✕
+                    </button>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            {/* Exibir notas */}
+            <ul className="space-y-1">
+              {notes
+                .filter(n => n.folderId === currentFolder)
+                .map((n) => (
+                  <li
+                    key={n.id}
+                    className={`flex items-center justify-between hover:bg-gray-700/40 rounded px-2 py-1 cursor-pointer transition text-xs sm:text-base ${
+                      selectedId === n.id ? 'bg-sky-500/20 border border-sky-500' : ''
+                    }`}
+                    draggable
+                    onDragStart={() => handleDragStart(n.id!)}
+                  >
+                    <span 
+                      onClick={() => handleSelect(n)} 
+                      className="flex-1 truncate pr-2"
+                      title={n.title}
+                    >
+                      {n.title}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(n.id);
+                      }}
+                      className="text-red-400 hover:text-red-200 ml-2"
+                      title="Excluir"
+                    >
+                      ✕
+                    </button>
+                  </li>
+              ))}
+            </ul>
+
+            {/* Área de drop para remover da pasta */}
+            {currentFolder && (
+              <div
+                className="mt-3 p-2 border-2 border-dashed border-gray-600 rounded text-center text-sm text-gray-400 hover:border-gray-500 transition"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, null)}
               >
-                <span 
-                  onClick={() => handleSelect(n)} 
-                  className="flex-1 truncate pr-2"
-                  title={n.title}
-                >
-                  {n.title}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(n.id);
-                  }}
-                  className="text-red-400 hover:text-red-200 ml-2"
-                  title="Excluir"
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
+                Arraste aqui para remover da pasta
+              </div>
+            )}
+
+            {notes.filter(n => n.folderId === currentFolder).length === 0 && (
+              <p className="opacity-70 text-center text-sm mt-4">
+                {currentFolder ? "Nenhuma nota nesta pasta." : "Nenhuma nota salva."}
+              </p>
+            )}
+          </div>
         )}
       </footer>
 
