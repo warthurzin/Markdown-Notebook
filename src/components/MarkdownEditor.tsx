@@ -147,6 +147,30 @@ export default function MarkdownEditor() {
     clearEditor();
   };
 
+  // Função para importar arquivo .md
+  const handleImport = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".md,.markdown,.txt";
+    input.onchange = (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const content = e.target?.result as string;
+          const fileName = file.name.replace(/\.(md|markdown|txt)$/, "");
+        
+          // Limpa a seleção atual e carrega o arquivo
+          setSelectedId(null);
+          setTitle(fileName);
+          setContent(content);
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
   // Função para exportar/baixar arquivo .md
   const handleExport = () => {
     if (!title.trim() && !content.trim()) {
@@ -172,6 +196,13 @@ export default function MarkdownEditor() {
       <header className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <h1 className="text-lg sm:text-2xl font-bold flex-shrink-0">Markdown Notebook</h1>
         <div className="flex gap-2 items-center flex-shrink-0">
+          <button
+            onClick={handleImport}
+            className="border border-purple-400 px-2 sm:px-3 py-1 rounded hover:bg-purple-500/20 transition text-xs sm:text-sm"
+            title="Importar arquivo .md"
+          >
+            Importar
+          </button>
           <button
             onClick={handleExport}
             className="border border-green-400 px-2 sm:px-3 py-1 rounded hover:bg-green-500/20 transition text-xs sm:text-sm"
