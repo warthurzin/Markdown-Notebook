@@ -67,6 +67,8 @@ export default function MarkdownEditor() {
         fetchNotes(u.uid);
       } else {
         setNotes([]);
+        setFolders([]);
+        setCurrentFolder(null);
         // Limpar editor quando usuário sai
         clearEditor();
       }
@@ -489,6 +491,7 @@ export default function MarkdownEditor() {
               onClick={() => setShowCreateFolder(true)}
               className="border border-yellow-400 px-2 py-1 rounded hover:bg-yellow-500/20 transition text-xs"
               title="Criar pasta"
+              disabled={!user}
             >
               + Pasta
             </button>
