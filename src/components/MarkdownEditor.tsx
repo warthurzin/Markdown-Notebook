@@ -436,9 +436,9 @@ export default function MarkdownEditor() {
               hr: () => <hr className="border-t border-gray-600 my-4" />,
     
               // LISTAS
-              ul: ({children}) => <ul className="list-disc list-inside text-gray-200 mb-3 space-y-1">{children}</ul>,
-              ol: ({children}) => <ol className="list-decimal list-inside text-gray-200 mb-3 space-y-1">{children}</ol>,
-              li: ({children}) => <li className="text-gray-200">{children}</li>,
+              ul: ({children}) => <ul className="list-disc list-outside ml-6 text-gray-200 mb-3 space-y-1">{children}</ul>,
+              ol: ({children}) => <ol className="list-decimal list-outside ml-6 text-gray-200 mb-3 space-y-1">{children}</ol>,
+              li: ({children}) => <li className="text-gray-200 relative">{children}</li>,
     
               // LINKS E IMAGENS
               a: ({children, href}) => <a href={href} className="text-sky-400 hover:text-sky-300 underline" target="_blank" rel="noopener noreferrer">{children}</a>,
