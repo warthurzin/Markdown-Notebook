@@ -58,6 +58,8 @@ export default function MarkdownEditor() {
   const [showCreateFolder, setShowCreateFolder] = useState<boolean>(false);
   const [newFolderName, setNewFolderName] = useState<string>("");
   const [draggedNote, setDraggedNote] = useState<string | null>(null);
+  const [editingFolder, setEditingFolder] = useState<string | null>(null);
+  const [editFolderName, setEditFolderName] = useState<string>("");
 
   // Listener de autenticação
   useEffect(() => {
@@ -227,6 +229,26 @@ export default function MarkdownEditor() {
       }
     } catch (err) {
     console.error("Erro ao excluir pasta:", err);
+    }
+  };
+
+  // Editar pasta
+  const handleEditFolder = async (folderId: string, newName: string) => {
+    if (!user) return alert("É necessário estar logado para editar pastas.");
+    if (!newName.trim()) return alert("Digite um nome para a pasta.");
+
+    try {
+      const folderToEdit = folders.find(f => f.id === folderId);
+      if (folderToEdit) {
+        await setDoc(doc(db, "folders", folderId), {
+          ...folderToEdit,
+          name: newName.trim(),
+        });
+        setEditingFolder(null);
+        setEditFolderName("");
+      }
+    } catch (err) {
+      console.error("Erro ao editar pasta:", err);
     }
   };
 
@@ -547,34 +569,86 @@ export default function MarkdownEditor() {
               // Exibir pastas na raiz
               <div className="mb-3">
                 {folders.map((folder) => (
-                  <div
-                    key={folder.id}
-                    className="flex items-center justify-between hover:bg-gray-700/40 rounded px-2 py-1 cursor-pointer transition mb-1"
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, folder.id)}
-                  >
-                    <div
-                      onClick={() => setCurrentFolder(folder.id)}
-                      className="flex items-center gap-2 flex-1"
-                    >
-                      <span className="text-yellow-400">📁</span>
-                      <span className="text-sm sm:text-base">{folder.name}</span>
-                      <span className="text-xs text-gray-400">
-                        ({notes.filter(n => n.folderId === folder.id).length})
-                      </span>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteFolder(folder.id);
-                      }}
-                      className="text-red-400 hover:text-red-200 ml-2"
-                      title="Excluir pasta"
-                    >
-                      ✕
-                    </button>
-                    </div>
-                  ))}
+                  <div key={folder.id} className="mb-1">
+                    {editingFolder === folder.id ? (
+                      // Modo edição
+                      <div className="flex items-center gap-2 bg-gray-800 rounded px-2 py-1 border border-gray-600">
+                        <span className="text-yellow-400">📁</span>
+                        <input
+                          value={editFolderName}
+                          onChange={(e) => setEditFolderName(e.target.value)}
+                          className="flex-1 bg-transparent border border-gray-700 rounded px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-sky-500"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleEditFolder(folder.id, editFolderName);
+                            if (e.key === 'Escape') {
+                              setEditingFolder(null);
+                              setEditFolderName("");
+                            }
+                          }}
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleEditFolder(folder.id, editFolderName)}
+                          className="text-green-400 hover:text-green-200 text-sm"
+                          title="Salvar"
+                        >
+                          ✓
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingFolder(null);
+                            setEditFolderName("");
+                          }}
+                          className="text-gray-400 hover:text-gray-200 text-sm"
+                          title="Cancelar"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      // Modo visualização
+                      <div
+                        className="flex items-center justify-between hover:bg-gray-700/40 rounded px-2 py-1 cursor-pointer transition"
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, folder.id)}
+                      >
+                        <div
+                          onClick={() => setCurrentFolder(folder.id)}
+                          className="flex items-center gap-2 flex-1"
+                        >
+                          <span className="text-yellow-400">📁</span>
+                          <span className="text-sm sm:text-base">{folder.name}</span>
+                          <span className="text-xs text-gray-400">
+                            ({notes.filter(n => n.folderId === folder.id).length})
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingFolder(folder.id);
+                              setEditFolderName(folder.name);
+                            }}
+                            className="text-blue-400 hover:text-blue-200 text-sm"
+                            title="Editar nome da pasta"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteFolder(folder.id);
+                            }}
+                            className="text-red-400 hover:text-red-200"
+                            title="Excluir pasta"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
 
