@@ -80,37 +80,37 @@ export default function MarkdownEditor() {
   const fetchNotes = (uid: string) => {
     setLoadingNotes(true);
 
-    // Buscar Notas
-    const notesQuery = query(notesRef, orderBy("createdAt", "desc"));
-    const notesUnsub = onSnapshot(notesQuery, (snap) => {
-      const arr: NoteWithFolder[] = [];
-      snap.forEach((docSnap) => {
-        const data = docSnap.data() as NoteWithFolder;
-        if (data.uid === uid) {
-          arr.push({ ...data, id: docSnap.id });
-        }
-      });
-      setNotes(arr);
-      setLoadingNotes(false);
+  // Buscar Notas
+  const notesQuery = query(notesRef, orderBy("createdAt", "desc"));
+  const notesUnsub = onSnapshot(notesQuery, (snap) => {
+    const arr: NoteWithFolder[] = [];
+    snap.forEach((docSnap) => {
+      const data = docSnap.data() as NoteWithFolder;
+      if (data.uid === uid) {
+        arr.push({ ...data, id: docSnap.id });
+      }
     });
+    setNotes(arr);
+    setLoadingNotes(false);
+  });
 
-    // Buscar Pastas
-    const foldersQuery = query(foldersRef, orderBy("createdAt", "desc"));
-    const foldersUnsub = onSnapshot(foldersQuery, (snap) => {
-      const arr: Folder[] = [];
-      snap.forEach((docSnap) => {
-        const data = docSnap.data() as Folder;
-        if (data.uid === uid) {
-          arr.push({ ...data, id: docSnap.id });
-        }
-      });
-      setFolders(arr);
+  // Buscar Pastas
+  const foldersQuery = query(foldersRef, orderBy("createdAt", "desc"));
+  const foldersUnsub = onSnapshot(foldersQuery, (snap) => {
+    const arr: Folder[] = [];
+    snap.forEach((docSnap) => {
+      const data = docSnap.data() as Folder;
+      if (data.uid === uid) {
+        arr.push({ ...data, id: docSnap.id });
+      }
     });
+    setFolders(arr);
+  });
 
-    return () => {
-      notesUnsub();
-      foldersUnsub();
-    };
+  return () => {
+    notesUnsub();
+    foldersUnsub();
+  };
   };
 
   // Login Google
@@ -210,7 +210,18 @@ export default function MarkdownEditor() {
     if (!confirm("Tem certeza que deseja excluir esta pasta? As notas dentro dela não serão excluídas.")) return;
   
     try {
+     
+      const notesInFolder = notes.filter(note => note.folderId === folderId);
+
+      for (const note of notesInFolder) {
+        await setDoc(doc(db, "notes", note.id!), {
+          ...note,
+          folderId: null, // Remove da pasta
+        });
+      }
+
       await deleteDoc(doc(db, "folders", folderId));
+
       if (currentFolder === folderId) {
         setCurrentFolder(null);
       }
@@ -570,7 +581,14 @@ export default function MarkdownEditor() {
             {/* Exibir notas */}
             <ul className="space-y-1">
               {notes
-                .filter(n => n.folderId === currentFolder)
+                .filter(n => {
+                  if (currentFolder === null) {
+                    return n.folderId === null || n.folderId === undefined || 
+                      !folders.some(folder => folder.id === n.folderId);
+                  } else {
+                    return n.folderId === currentFolder;
+                  }
+                })
                 .map((n) => (
                   <li
                     key={n.id}
