@@ -324,6 +324,25 @@ export default function MarkdownEditor() {
     URL.revokeObjectURL(url);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+    
+      const textarea = e.target as HTMLTextAreaElement;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+    
+      const tabSpaces = '  '; 
+    
+      const newContent = content.substring(0, start) + tabSpaces + content.substring(end);
+      setContent(newContent);
+    
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + tabSpaces.length;
+      }, 0);
+    }
+  };
+
   return (
     <div className="min-h-screen text-white bg-gradient-to-br from-gray-900 to-gray-800 p-4 flex flex-col">
       {/* Header */}
@@ -395,6 +414,7 @@ export default function MarkdownEditor() {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
+            onKeyDown ={handleKeyDown}
             className="flex-1 bg-transparent border border-gray-700 rounded p-2 font-mono resize-none outline-none focus:ring-1 focus:ring-sky-500 text-sm sm:text-base min-h-[250px] sm:min-h-0"
             placeholder="# Digite seu markdown aqui..."
           />
