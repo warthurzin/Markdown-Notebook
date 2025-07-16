@@ -46,7 +46,7 @@ interface NoteWithFolder extends Note {
 export default function MarkdownEditor() {
   const [user, setUser] = useState<User | null>(null);
   const [title, setTitle] = useState<string>("");
-  const [content, setContent] = useState<string>("# Digite seu markdown aqui...\n\n> Pré-visualização à direita.");
+  const [content, setContent] = useState<string>("");
   const [notes, setNotes] = useState<NoteWithFolder[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loadingNotes, setLoadingNotes] = useState<boolean>(false);
@@ -181,7 +181,7 @@ export default function MarkdownEditor() {
   const clearEditor = () => {
     setSelectedId(null);
     setTitle("");
-    setContent("# Digite seu markdown aqui...\n\n> Pré-visualização à direita.");
+    setContent("");
   };
 
   // Nova função para criar nova nota
