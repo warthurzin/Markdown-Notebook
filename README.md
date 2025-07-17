@@ -18,6 +18,11 @@ Um editor de Markdown moderno com **pré-visualização em tempo real**, **auten
 
 - ✅ Editor com suporte a **Markdown + GFM** (checklists, tabelas, código)
 - 🔍 Pré-visualização ao vivo com **React Markdown**
+- 📂 **Pastas:** crie, edite e exclua pastas; organize suas notas por drag‑and‑drop
+- 📥 **Importação** de arquivos `.md` e `.txt`
+- 📤 **Exportação** de notas como arquivo Markdown
+- 💡 **Guia de Markdown** embutido (modal de ajuda com exemplos)
+- ↹ Captura da tecla **Tab** para indentação automática no editor
 - ☁️ Salve suas anotações diretamente no **Firebase Firestore**
 - 🔐 Login seguro com conta Google (Firebase Auth)
 - 🧠 Interface limpa e responsiva com **Tailwind CSS**
@@ -133,11 +138,11 @@ markdown-notebook/
 ## 📸 Capturas de Tela
 
 ### 🖥️ Desktop
-![Editor Desktop](https://i.imgur.com/0PHExsz.png)
+![Editor Desktop](https://i.imgur.com/z40HetM.png)
 *Interface principal - Editor e preview lado a lado*
 
 ### 📱 Mobile
-![Mobile View](https://i.imgur.com/svy8Bf4_d.jpeg?maxwidth=520&shape=thumb&fidelity=high)
+![Mobile View](https://i.imgur.com/JJl5nQrl.jpeg)
 
 *Versão responsiva para dispositivos móveis*
 
@@ -169,8 +174,13 @@ markdown-notebook/
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Regras para notas
     match /notes/{noteId} {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    // Regras para pastas
+    match /folders/{folderId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
     }
   }
 }
