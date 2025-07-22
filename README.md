@@ -112,22 +112,21 @@ O app estará disponível em `http://localhost:5173` 🎉
 
 ```
 markdown-notebook/
-├── public/                  # Arquivos estáticos
 ├── src/
-│   ├── components/         # Componentes React
-│   │   ├── Editor/        # Componentes do editor
-│   │   ├── Auth/          # Componentes de autenticação
-│   │   └── UI/            # Componentes de interface
-│   ├── hooks/             # Custom hooks
-│   ├── services/          # Serviços (Firebase, etc.)
-│   ├── types/             # Definições TypeScript
-│   ├── utils/             # Funções utilitárias
-│   ├── styles/            # Estilos globais
-│   ├── App.tsx            # Componente principal
-│   └── main.tsx           # Ponto de entrada
-├── docs/                  # Documentação e imagens
-├── .env.example           # Exemplo de variáveis de ambiente
+│   ├── components/         
+│   │   └── MarkdownEditor.tsx
+│   ├── App.tsx
+│   ├── firebase.ts
+│   ├── index.css
+│   ├── main.tsx
+├── .env
+├── .gitignore
+├── index.html
+├── LICENSE
 ├── package.json
+├── package-lock.json
+├── postcss.config.js
+├── README.md
 ├── tailwind.config.js
 ├── tsconfig.json
 └── vite.config.ts
